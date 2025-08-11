@@ -5,12 +5,11 @@ apt update && apt upgrade -y
 # QOL tools:
 apt install -y tmux netcat net-tools ldnsutils inetutils-traceroute 
 
-# Mavlink Router setup:
+# Mavlink Router setup (required for Rpanion Server to run):
 
 apt install -y git meson ninja-build pkg-config gcc g++ systemd libgtest-dev libgmock-dev cmake clang-tidy \
     libxml2-dev libxslt-dev python-dev liblzma5=5.2.4-1ubuntu1.1 libunwind8=1.2.1-9ubuntu0.1 liblzma-dev libunwind-dev
 pip3 install --upgrade --root-user-action ignore meson netifaces numpy future lxml gst
-
 
 # Build and install Mavlink Router:
 mkdir git-repos
@@ -38,17 +37,16 @@ sed -i -e 's/sudo reboot/#sudo reboot/g' -e 's/\bif\b/#if/g' -e 's/\bfi\b/#fi/g'
 npm install -g n
 ../changenodeversion.sh -y
 
-#npx npm-check-updates -u
-# npm audit fix --force
-
 # Install NPM dependencies (first npm install seems to fail):
 npm i || true
+
+npm audit fix
 
 # Idk enough about NPM packages/NodeJS to understand why the previous install fails 
 # and the second install doesn't but this seems to work:
 
 #rm -rf package-lock.json node_modules 
-#npm install || true
+npm install || true
 
 # Start Rpanion dev server:
 # npm run dev
@@ -63,4 +61,4 @@ sed -ie 's/"dependencies":\s*"[^"]*"/"dependencies": "nodejs  (>= 20.19.4-1nodes
 npm run package && dpkg -i ../rpanion-server_*_arm64.deb
 
 # Set IP address for eth0 connection to peer to MavLink network (can be changed):
-nmcli connection modify 'Wired connection 1' ipv4.addresses 192.168.144.100/24 ipv4.gateway 192.168.144.1
+nmcli con mod 'Wired connection 1' ipv4.addresses 192.168.144.100/24 ipv4.gateway 192.168.144.1 ipv4.method manual
