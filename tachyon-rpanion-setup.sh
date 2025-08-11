@@ -9,6 +9,9 @@ apt install -y tmux netcat net-tools ldnsutils inetutils-traceroute
 
 apt install -y git meson ninja-build pkg-config gcc g++ systemd libgtest-dev libgmock-dev cmake clang-tidy \
     libxml2-dev libxslt-dev python-dev liblzma5=5.2.4-1ubuntu1.1 libunwind8=1.2.1-9ubuntu0.1 liblzma-dev libunwind-dev
+
+# Ensure Pip is installed before upgrading Meson ( needed to install MavLink router):
+apt install -y python3-pip
 pip3 install --upgrade --root-user-action ignore meson netifaces numpy future lxml gst
 
 # Build and install Mavlink Router:
@@ -30,7 +33,7 @@ git clone https://github.com/stephendade/Rpanion-server.git
 cp server/index.js Rpanion-server/server/index.js
 
 cd Rpanion-server/deploy
-sed -i -e 's/sudo reboot/#sudo reboot/g' -e 's/\bif\b/#if/g' -e 's/\bfi\b/#fi/g' -e 's/echo ""/#echo ""/g' -e 's/ echo "#/#echo "#/g' -e 's/echo "s/#echo "s/g' -e 's/echo "g/#echo "g/g' ./RasPi-ubuntu-deploy.sh
+sed -i -e 's/sudo reboot/#sudo reboot/g' -e 's/npm install/#npm install/g' -e 's/\bif\b/#if/g' -e 's/\bfi\b/#fi/g' -e 's/echo ""/#echo ""/g' -e 's/ echo "#/#echo "#/g' -e 's/echo "s/#echo "s/g' -e 's/echo "g/#echo "g/g' ./RasPi-ubuntu-deploy.sh
 ./RasPi-ubuntu-deploy.sh
 
 # Change the NodeJS version to 20.5.1:
@@ -39,6 +42,7 @@ npm install -g n
 
 # Install NPM dependencies (first npm install seems to fail):
 npm i || true
+npm audit fix
 
 # Idk enough about NPM packages/NodeJS to understand why the previous install fails 
 # and the second install doesn't but this seems to work:
@@ -61,4 +65,6 @@ sed -ie 's/"dependencies":\s*"[^"]*"/"dependencies": "nodejs  (>= 20.19.4-1nodes
 npm run package && dpkg -i ../rpanion-server_*_arm64.deb
 
 # Set IP address for eth0 connection to peer to MavLink network (can be changed):
-nmcli con mod 'Wired connection 1' ipv4.addresses 192.168.144.100/24 ipv4.gateway 192.168.144.1 ipv4.method manual
+nmcli con mod 'Wired connection 1' ipv4.addresses 192.168.144.100/24 ipv4.gateway 192.168.144.1 ipv4.method manual ipv4.never-default yes
+nmcli con up 'Wired connection 1'
+nmcli connection modify 'Wired connection 1' +ipv4.routes "192.168.144.0/24 dev eth0"
