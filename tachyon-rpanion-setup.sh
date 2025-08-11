@@ -40,13 +40,13 @@ npm install -g n
 # Install NPM dependencies (first npm install seems to fail):
 npm i || true
 
-npm audit fix
-
 # Idk enough about NPM packages/NodeJS to understand why the previous install fails 
 # and the second install doesn't but this seems to work:
 
-#rm -rf package-lock.json node_modules 
+rm -rf ../package-lock.json ../node_modules 
+
 npm install || true
+npm audit fix
 
 # Start Rpanion dev server:
 # npm run dev
